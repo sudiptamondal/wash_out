@@ -61,7 +61,7 @@ xml.tag! "wsdl:definitions",
     end
   end
 
-  xml.tag! "wsdl:binding", :name => "#{@name}_binding", :type => "tns:#{@name}_port" do
+  xml.tag! "wsdl:binding", :name => "#{@name}_binding", :type => "tns:#{@name}_service" do
     xml.tag! "soap:binding", :style => 'document', :transport => 'http://schemas.xmlsoap.org/soap/http'
     @map.keys.each do |operation|
       xml.tag! "wsdl:operation", :name => operation do
