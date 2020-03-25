@@ -1,14 +1,34 @@
 xml.instruct!
-xml.definitions 'xmlns' => 'http://schemas.xmlsoap.org/wsdl/',
-                'xmlns:tns' => @namespace,
-                'xmlns:soap' => 'http://schemas.xmlsoap.org/wsdl/soap/',
-                'xmlns:xsd' => 'http://www.w3.org/2001/XMLSchema',
-                'xmlns:soap-enc' => 'http://schemas.xmlsoap.org/soap/encoding/',
-                'xmlns:wsdl' => 'http://schemas.xmlsoap.org/wsdl/',
-                'name' => @name,
-                'targetNamespace' => @namespace do
+xml.tag! "wsdl:definitions", 
+          "xmlns:wsdl" => 'http://schemas.xmlsoap.org/wsdl/','xmlns:tns' => @namespace,
+          'xmlns:soap' => 'http://schemas.xmlsoap.org/wsdl/soap/',
+          'xmlns:xsd' => 'http://www.w3.org/2001/XMLSchema',
+          'xmlns:xsi' => 'http://www.w3.org/2001/XMLSchema-instance',
+          'xmlns:soap-enc' => 'http://schemas.xmlsoap.org/soap/encoding/',
+          'name' => @name,
+          "xmlns:plnk"=>"http://schemas.xmlsoap.org/ws/2003/05/partner-link/",
+          'targetNamespace' => @namespace do
+  xml.tag! "wsdl:documentation", "xmlns:oer" => "http://xmlns.oracle.com/oer"  do
+    xml.name @name
+    xml.description "Sample WSDL"
+    xml.tag! "oer:lifecycle", "Active"
+    @map.each do |operation, formats|
+      xml.tag! "oer:operation", "name"=>operation do
+        xml.description "Sample Operation"
+      end   
+    end
+  end
 
-  xml.types do
+
+  xml.tag! "plnk:partnerLinkType", :name => "pdhsoap_service" do
+    xml.tag! "plnk:role", :name => "pdhsoap_service_provider" do
+      xml.tag! "plnk:portType", :name => "tns:pdhsoap_service"
+    end
+  end
+
+
+
+  xml.tag! "wsdl:types" do
     xml.tag! "schema", :targetNamespace => @namespace, :xmlns => 'http://www.w3.org/2001/XMLSchema' do
       defined = []
       @map.each do |operation, formats|
@@ -32,26 +52,26 @@ xml.definitions 'xmlns' => 'http://schemas.xmlsoap.org/wsdl/',
     end
   end
 
-  xml.portType :name => "#{@name}_port" do
+  xml.tag! "wsdl:portType",  :name => "#{@name}_port" do
     @map.each do |operation, formats|
-      xml.operation :name => operation do
-        xml.input :message => "tns:#{operation}"
-        xml.output :message => "tns:#{formats[:response_tag]}"
+      xml.tag! "wsdl:operation", :name => operation do
+        xml.tag! "wsdl:input", :message  => "tns:#{operation}"
+        xml.tag! "wsdl:output", :message => "tns:#{formats[:response_tag]}"
       end
     end
   end
 
-  xml.binding :name => "#{@name}_binding", :type => "tns:#{@name}_port" do
+  xml.tag! "wsdl:binding", :name => "#{@name}_binding", :type => "tns:#{@name}_port" do
     xml.tag! "soap:binding", :style => 'document', :transport => 'http://schemas.xmlsoap.org/soap/http'
     @map.keys.each do |operation|
-      xml.operation :name => operation do
+      xml.tag! "wsdl:operation", :name => operation do
         xml.tag! "soap:operation", :soapAction => operation
-        xml.input do
+        xml.tag! "wsdl:input" do
           xml.tag! "soap:body",
             :use => "literal",
             :namespace => @namespace
         end
-        xml.output do
+        xml.tag! "wsdl:output" do
           xml.tag! "soap:body",
             :use => "literal",
             :namespace => @namespace
@@ -60,8 +80,8 @@ xml.definitions 'xmlns' => 'http://schemas.xmlsoap.org/wsdl/',
     end
   end
 
-  xml.service :name => @service_name do
-    xml.port :name => "#{@name}_port", :binding => "tns:#{@name}_binding" do
+  xml.tag! "wsdl:service", :name => "service" do
+    xml.tag! "wsdl:port", :name => "#{@name}_port", :binding => "tns:#{@name}_binding" do
       xml.tag! "soap:address", :location => WashOut::Router.url(request, @name)
     end
   end
