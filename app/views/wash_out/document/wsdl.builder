@@ -40,9 +40,9 @@ xml.tag! "wsdl:definitions",
   end
 
   @map.each do |operation, formats|
-    xml.message :name => "#{operation}" do
+    xml.tag! "wsdl:message", :name => "#{operation}" do
       formats[:in].each do |p|
-        xml.part wsdl_occurence(p, false, :name => p.name, :type => p.namespaced_type)
+        xml.tag! "wsdl:part", wsdl_occurence(p, false, :name => p.name, :type => p.namespaced_type)
       end
     end
     xml.message :name => formats[:response_tag] do
